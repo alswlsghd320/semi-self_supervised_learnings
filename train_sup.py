@@ -91,7 +91,7 @@ class Trainer():
             print(f'Epoch : {epoch} | Val Loss:{val_loss:.4f}   | Val Top1:{val_top1:.4f}   | Val Top5:{val_top5:.4f}')
             state_dict = self.model.state_dict()
 
-            if val_acc > best_acc:
+            if val_top1 > best_acc:
                 early_stopping = 0
                 best_epoch = epoch
                 best_loss = val_loss

@@ -289,8 +289,8 @@ def get_augmentation(img_size=32, ver=1):
         transform = transforms.Compose([
             transforms.ToTensor(),
             transforms.Resize((img_size, img_size)),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                 std=[0.229, 0.224, 0.225]),
+            transforms.Normalize(mean=[0.5, 0.5, 0.5],
+                                 std=[0.5, 0.5, 0.5]),
         ])
     elif ver == 2: #weak augmentation
         transform = transforms.Compose([
@@ -299,8 +299,8 @@ def get_augmentation(img_size=32, ver=1):
             transforms.RandomHorizontalFlip(),
             transforms.RandomVerticalFlip(),
             transforms.Resize((img_size, img_size)),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                 std=[0.229, 0.224, 0.225]),
+            transforms.Normalize(mean=[0.5, 0.5, 0.5],
+                                 std=[0.5, 0.5, 0.5]),
         ])
     elif ver == 3: #Hard augmentation
         transform = transforms.Compose([
@@ -312,17 +312,17 @@ def get_augmentation(img_size=32, ver=1):
             transforms.ColorJitter(),
             transforms.RandomInvert(),
             transforms.Resize((img_size, img_size)),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                std=[0.229, 0.224, 0.225]),
+            transforms.Normalize(mean=[0.5, 0.5, 0.5],
+                                std=[0.5, 0.5, 0.5]),
         ])
     elif ver == 4:
         transform = transforms.Compose([
             transforms.ToTensor(),
-            transforms.RandomRotation(degrees=20),
-            transforms.RandomAffine(degrees=(10, 30)),
+            transforms.RandomHorizontalFlip(p=1),
+            transforms.RandomVerticalFlip(p=1),
             transforms.Resize((img_size, img_size)),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                 std=[0.229, 0.224, 0.225]),
+            transforms.Normalize(mean=[0.5, 0.5, 0.5],
+                                 std=[0.5, 0.5, 0.5]),
         ])
 
     return transform

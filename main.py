@@ -5,7 +5,6 @@ import random
 import numpy as np
 
 import torch
-
 from trainer import Trainer
 from config import getConfig
 

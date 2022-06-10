@@ -18,7 +18,7 @@ def getConfig():
     ## Base Parameter
     parser.add_argument('--epochs', type=int, default=100)
     parser.add_argument('--img_size', type=int, default=32)
-    parser.add_argument('--batch_size', type=int, default=128)
+    parser.add_argument('--batch_size', type=int, default=256)
     # parser.add_argument('--optimizer', type=str, default='Lamb')
     parser.add_argument('--lr', type=float, default=1e-3)
     parser.add_argument('--weight_decay', type=float, default=1e-3)
@@ -45,7 +45,7 @@ def getConfig():
 
     parser.add_argument('--method', type=str, default=None)
     # Semi-supervised Learning
-    parser.add_argument('--threshold', type=float, default=0.95)
+    parser.add_argument('--threshold', type=float, default=0.8)
     parser.add_argument('--lambda_u', type=float, default=1)
     parser.add_argument('--temperature', type=float, default=1)
 
@@ -53,6 +53,14 @@ def getConfig():
     parser.add_argument('--steps', type=int, default=5)
 
     ## Meta Pseudo Labels
+
+    ## Virtual Adversarial Training
+    parser.add_argument('--xi', type=float, default=10.0)
+    parser.add_argument('--eps', type=float, default=1.0)
+    parser.add_argument('--ip', type=float, default=1)
+
+    # Self-supervised Learning
+    parser.add_argument('--feature_dim', type=int, default=0)
 
 
     # Hardware settings

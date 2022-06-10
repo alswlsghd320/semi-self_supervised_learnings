@@ -16,7 +16,7 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 from model import Network
-from utils import accuracy
+from utils import accuracy, VATLoss
 from config import getConfig
 from datasets.loader_cifar import CIFAR10, get_augmentation
 
@@ -30,7 +30,7 @@ class Trainer():
         self.model = Network(args).to(self.device)
 
         self.train_ds = CIFAR10(args.data_path, split='label', download=True, transform=get_augmentation(ver=2), boundary=0)
-        self.unlabel_ds = CIFAR10(args.data_path, split='unlabel', download=True, transform=get_augmentation(ver=2), boundary=0, two_transform = get_augmentation(ver=3))
+        self.unlabel_ds = CIFAR10(args.data_path, split='unlabel', download=True, transform=get_augmentation(ver=2), boundary=0)
         self.val_ds = CIFAR10(args.data_path, split='valid', download=True, transform=get_augmentation(ver=1), boundary=0)
         self.test_ds = CIFAR10(args.data_path, split='test', download=True, transform=get_augmentation(ver=1), boundary=0)
 
@@ -42,6 +42,7 @@ class Trainer():
         self.save_path = args.save_path
         self.writer = SummaryWriter(self.save_path) if args.use_tensorboard else None
         self.criterion = nn.CrossEntropyLoss(label_smoothing=args.label_smoothing)
+        self.vadv_loss = VATLoss(xi=args.xi, eps=args.eps, ip=args.ip)
         self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=args.lr)
 
         if args.scheduler == 'step':
@@ -125,9 +126,8 @@ class Trainer():
         top5 = 0
 
         labeled_iter = iter(self.train_dl)
-        for images_us, images_uh, _ in tqdm(self.unlabel_dl):
+        for images_us, _ in tqdm(self.unlabel_dl):
             images_us = torch.tensor(images_us, device=self.device, dtype=torch.float32)
-            images_uh = torch.tensor(images_uh, device=self.device, dtype=torch.float32)
 
             #Get labeled data
             try:
@@ -142,23 +142,11 @@ class Trainer():
 
             self.model.zero_grad(set_to_none=True)
 
-            images = torch.cat([images_l, images_us, images_uh])
-            preds = self.model(images)
+            preds_l = self.model(images_l)
+            loss_l = self.criterion(preds_l, targets_l) # labeled
+            loss_vadv = self.vadv_loss(self.model, images_us) # unlabeld
 
-            preds_l = preds[:self.args.batch_size]
-            preds_us, preds_uh = preds[self.args.batch_size:].chunk(2)
-            del preds
-
-            loss_l = self.criterion(preds_l, targets_l)
-
-            # weak augmentation을 pseudo label로 사용
-            pseudo_label = torch.softmax(preds_us.detach()/self.args.temperature, dim=-1)
-            max_probs, targets_u = torch.max(pseudo_label, dim=-1)
-            mask = max_probs.ge(self.args.threshold).float()
-            # confidence가 threshold 넘는 경우만 strong augmentation의 예측과 weak augmentation의 pseudo label과의 cross entropy 계산
-            loss_u = (F.cross_entropy(preds_uh, targets_u, reduction='none') * mask).mean()
-
-            loss = loss_l + self.args.lambda_u * loss_u
+            loss = loss_l + self.args.lambda_u * loss_vadv
             loss.backward()
 
             self.optimizer.step()

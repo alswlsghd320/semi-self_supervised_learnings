@@ -22,7 +22,7 @@ from datasets.loader_cifar import CIFAR10, get_augmentation
 import warnings
 warnings.filterwarnings('ignore')
 
-class Noisy_Student():
+class Trainer():
     def __init__(self, args):
         self.args = args
         self.device = torch.device('cuda' if torch.cuda.is_available() and args.device == 'cuda' else 'cpu')
@@ -103,7 +103,7 @@ class Noisy_Student():
             print(f'Epoch : {epoch} | Val Loss:{val_loss:.4f}   | Val Top1:{val_top1:.4f}   | Val Top5:{val_top5:.4f}')
             state_dict = self.student.state_dict()
 
-            if val_acc > best_acc:
+            if val_top1 > best_acc:
                 early_stopping = 0
                 best_epoch = epoch
                 best_loss = val_loss
@@ -227,5 +227,5 @@ if __name__ == '__main__':
 
     os.makedirs(args.save_path, exist_ok=True)
 
-    trainer = Noisy_Student(args)
+    trainer = Trainer(args)
     trainer.train()

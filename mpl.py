@@ -23,7 +23,7 @@ from datasets.loader_cifar import CIFAR10, get_augmentation
 import warnings
 warnings.filterwarnings('ignore')
 
-class MPL():
+class Trainer():
     def __init__(self, args):
         self.args = args
         self.device = torch.device('cuda' if torch.cuda.is_available() and args.device == 'cuda' else 'cpu')
@@ -243,19 +243,19 @@ class MPL():
             val_loss, val_top1, val_top5 = self.validate()
 
             if self.writer is not None:
-                self.writer.add_scalar('Train/top1_accuracy', train_top1, epoch)
-                self.writer.add_scalar('Train/top5_accuracy', train_top5, epoch)
-                self.writer.add_scalar('Train/loss', train_loss, epoch)
-                self.writer.add_scalar('Train/LR', self.optimizer_s.param_groups[0]['lr'], epoch)
-                self.writer.add_scalar('Val/top1_accuracy', val_top1, epoch)
-                self.writer.add_scalar('Val/top5_accuracy', val_top5, epoch)
-                self.writer.add_scalar('Val/loss', val_loss, epoch)
+                self.writer.add_scalar('Finetune/Train/top1_accuracy', train_top1, epoch)
+                self.writer.add_scalar('Finetune/Train/top5_accuracy', train_top5, epoch)
+                self.writer.add_scalar('Finetune/Train/loss', train_loss, epoch)
+                self.writer.add_scalar('Finetune/Train/LR', self.optimizer_s.param_groups[0]['lr'], epoch)
+                self.writer.add_scalar('Finetune/Val/top1_accuracy', val_top1, epoch)
+                self.writer.add_scalar('Finetune/Val/top5_accuracy', val_top5, epoch)
+                self.writer.add_scalar('Finetune/Val/loss', val_loss, epoch)
 
             print(f'Epoch : {epoch} | Train Loss:{train_loss:.4f} | Train Top1:{train_top1:.4f} | Train Top5:{train_top5:.4f}')
             print(f'Epoch : {epoch} | Val Loss:{val_loss:.4f}   | Val Top1:{val_top1:.4f}   | Val Top5:{val_top5:.4f}')
             state_dict = self.student.state_dict()
 
-            if val_acc > best_acc:
+            if val_top1 > best_acc:
                 early_stopping = 0
                 best_epoch = epoch
                 best_loss = val_loss
@@ -274,9 +274,9 @@ class MPL():
                 break
 
             if self.writer is not None:
-                self.writer.add_scalar('Best/top1_accuracy', best_acc, epoch)
-                self.writer.add_scalar('Best/top5_accuracy', best_acc2, epoch)
-                self.writer.add_scalar('Best/loss', best_loss, epoch)
+                self.writer.add_scalar('Finetune/Best/top1_accuracy', best_acc, epoch)
+                self.writer.add_scalar('Finetune/Best/top5_accuracy', best_acc2, epoch)
+                self.writer.add_scalar('Finetune/Best/loss', best_loss, epoch)
 
         end = time.time()
         print(f'Best Epoch:{best_epoch} | Loss:{best_loss:.4f} | Top1:{best_acc:.4f} | Top5:{best_acc2:.4f}')
@@ -359,6 +359,6 @@ if __name__ == '__main__':
 
     os.makedirs(args.save_path, exist_ok=True)
 
-    trainer = MPL(args)
+    trainer = Trainer(args)
     trainer.train()
     trainer.finetune()
